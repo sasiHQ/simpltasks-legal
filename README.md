@@ -53,8 +53,9 @@ does not match the entity verified on the Apple Developer account.
 
 - **Pure HTML/CSS/JS** - no frameworks, no build step, no dependencies
 - **Zero JavaScript tracking** - no analytics, no cookies, no external scripts
-- **System font stack** - no external font loading
+- **Self-hosted Inter** - 48 KB variable WOFF2 served from this origin (`css/fonts/`), preloaded from each page; no Google Fonts, no CDN, so no visitor IP leaves to a third party
 - **Dark mode** - automatic via `prefers-color-scheme`, manual override via localStorage
+- **CSS-only animated data-flow** - dashed rails and the breathing node ring are pure CSS (`repeating-linear-gradient` plus `@keyframes`); no SVG, no JS. Both animations stop under `prefers-reduced-motion: reduce`
 - **Print-friendly** CSS, responsive desktop sidebar / mobile chip TOC
 
 ## Deployment

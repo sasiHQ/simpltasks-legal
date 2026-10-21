@@ -1,0 +1,6 @@
+# Static site: keep text assets LF in the repo and in every checkout.
+# (CRLF previously broke a deploy script: CRLF-fed bash reported
+# "set: - invalid option".)
+* text=auto eol=lf
+*.png binary
+*.woff2 binary

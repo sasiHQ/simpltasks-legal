@@ -13,6 +13,7 @@
   <title>Privacy Policy — SimplTasks</title>
   <link rel="icon" href="assets/favicon.png" type="image/png" />
   <link rel="canonical" href="https://legal.simpl-tasks.com/" />
+  <link rel="preload" href="css/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -137,18 +138,18 @@
         <!-- 5 -->
         <div class="section-heading reveal"><h2 id="data-flow">How Your Data Flows</h2></div>
 
-        <div class="data-flow reveal">
+        <div class="data-flow reveal" role="group" aria-label="Data flow: you, the SimplTasks app, our processors MongoDB Atlas, Firebase, Brevo and OneSignal, and back to you.">
           <div class="flow-node user">You</div>
-          <span class="flow-arrow">→</span>
+          <span class="flow-arrow" aria-hidden="true"></span>
           <div class="flow-node">SimplTasks App</div>
-          <span class="flow-arrow">→</span>
+          <span class="flow-arrow" aria-hidden="true"></span>
           <div class="flow-row">
             <div class="flow-node">MongoDB Atlas</div>
             <div class="flow-node">Firebase</div>
             <div class="flow-node">Brevo Email</div>
             <div class="flow-node">OneSignal</div>
           </div>
-          <span class="flow-arrow">→</span>
+          <span class="flow-arrow" aria-hidden="true"></span>
           <div class="flow-node user">Back to You</div>
         </div>
 
