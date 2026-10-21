@@ -1,84 +1,138 @@
 # SimplTasks Legal Center
 
-Standalone privacy policy website for SimplTasks, hosted independently from the main application server. Satisfies Google Play and Apple App Store legal page requirements.
+Standalone privacy policy site for SimplTasks, published to satisfy the Google Play and
+Apple App Store legal-page requirements.
+
+Owner of record: **Strategy Advisory Solutions Inc** - 5200 Yonge Street, Toronto, Ontario
+M2N 5P6, Canada. Governing law: Ontario.
+
+## Current status (21 Oct 2026)
+
+| Item | State |
+|---|---|
+| Live now (interim) | `https://simpl-tasks.com/legal/` - nginx serving `/usr/share/nginx/legal/` on the app host |
+| Redirect | `https://simpl-tasks.com/privacy-policy` -> `301` -> `/legal/` |
+| Final home (SOW 5B) | GitHub Pages project site `sasihq.github.io/simpltasks-legal`, custom domain `legal.simpl-tasks.com` |
+| Outstanding | `CNAME legal -> sasihq.github.io` in the GoDaddy DNS account (client action); enabling Pages needs repo admin |
+
+The interim nginx delivery satisfies both stores today, but it is **not** the SOW-compliant
+end state: 5B.1 requires the legal site to be independent of the main application so the
+pages stay reachable while the app server is maintained. Move to GitHub Pages once DNS lands.
 
 ## Pages
 
-| Page | URL | Description |
-|------|-----|-------------|
-| **Privacy Policy** | `legal.simpl-tasks.com/` | Data collection, third-party services, user rights, CCPA/GDPR compliance |
-| **Terms of Service** | `legal.simpl-tasks.com/terms` | Acceptable use, account terms, liability, governing law |
-| **Data Deletion Request** | `legal.simpl-tasks.com/data-deletion` | Apple-required account deletion instructions |
+| Page | Local file | Live URL |
+|---|---|---|
+| Privacy Policy | `index.html` | `https://simpl-tasks.com/legal/` |
+| Terms of Service | `terms.html` | `https://simpl-tasks.com/legal/terms` |
+| Data Deletion Request | `data-deletion.html` | `https://simpl-tasks.com/legal/data-deletion` |
 
-## Tech Stack
+Canonical URLs, `og:url` and `sitemap.xml` all target `https://legal.simpl-tasks.com/...`.
+That is deliberate - they become correct the moment the subdomain exists, so do not rewrite
+them to the interim path.
 
-- **Pure HTML/CSS/JS** — No frameworks, no build step, no dependencies
-- **Zero JavaScript tracking** — No analytics, no cookies, no external scripts
-- **System font stack** — No external font loading
-- **Dark mode** — Automatic via `prefers-color-scheme`, manual override via localStorage
-- **Print-friendly** — Optimized CSS for printing legal documents
-- **Responsive** — Desktop sidebar + mobile chip-based TOC
+## Legal content - keep these consistent
+
+| Field | Value |
+|---|---|
+| Legal entity | Strategy Advisory Solutions Inc |
+| Address | 5200 Yonge Street, Toronto, Ontario M2N 5P6, Canada |
+| Governing law / venue | Province of Ontario and the federal laws of Canada applicable in Ontario; courts of Ontario, sitting in Toronto |
+| Privacy regimes cited | PIPEDA (Canada), GDPR / UK GDPR, CCPA / CPRA |
+| Apple Team ID | 5UD3L6N2B5 |
+
+The entity name appears in **six** places across `index.html` and `terms.html`; the address in
+three. Change them together, and bump `Last updated` in all three pages plus the three
+`lastmod` values in `sitemap.xml`.
+
+Never reintroduce `1209 Orange Street, Wilmington, Delaware` or a Delaware governing-law
+clause: that street address is a registered-agent mass-registration address, and Delaware law
+does not match the entity verified on the Apple Developer account.
+
+## Tech stack
+
+- **Pure HTML/CSS/JS** - no frameworks, no build step, no dependencies
+- **Zero JavaScript tracking** - no analytics, no cookies, no external scripts
+- **System font stack** - no external font loading
+- **Dark mode** - automatic via `prefers-color-scheme`, manual override via localStorage
+- **Print-friendly** CSS, responsive desktop sidebar / mobile chip TOC
 
 ## Deployment
 
-Designed for **GitHub Pages** or **Netlify** (free static hosting):
+### GitHub Pages (target for 5B)
 
-### GitHub Pages
+1. Settings -> Pages -> Source: `main` branch, root folder
+2. DNS: add `CNAME` record `legal` -> `sasihq.github.io` (the `CNAME` file here already holds the domain)
+3. GitHub issues the TLS certificate once the record resolves
 
-1. Create a repository (public)
-2. Push all files from this folder to the repo
-3. Enable GitHub Pages in Settings → Pages → Source: `main` branch, root folder
-4. Configure DNS:
-   - Add a CNAME record: `legal.simpl-tasks.com` → `<username>.github.io`
-   - GitHub automatically provisions Let's Encrypt SSL
+`legal.simpl-tasks.com` sits under an HSTS `includeSubDomains` policy, so the name must never
+be reachable over plain HTTP. Land DNS and the certificate together; never test over `http://`.
 
-### Netlify
+### Interim nginx delivery (current)
+
+Files staged at `/usr/share/nginx/legal/`, root-owned, mode 0644, served by the existing
+server block in `/etc/nginx/nginx.conf`:
+
+```nginx
+location ^~ /legal/ {
+    root /usr/share/nginx;
+    index index.html;
+    try_files $uri $uri/ $uri.html =404;
+}
+location = /legal          { return 301 /legal/; }
+location = /privacy-policy { return 301 /legal/; }
+```
+
+- Apply: `sudo nginx -t && sudo systemctl reload nginx` - reload, never restart
+- Rollback: `sudo cp -a /etc/nginx/nginx.conf.bak-<timestamp> /etc/nginx/nginx.conf && sudo nginx -t && sudo systemctl reload nginx`
+- **Verify content, not status codes.** The app's SPA fallback (`try_files $uri /index.html`)
+  answers `200` for unknown paths, so a `200` proves nothing. Assert the body contains
+  `Privacy Policy` and does *not* contain `flutter_bootstrap`.
+
+### Netlify (alternative)
 
 1. Drag this folder onto [app.netlify.com](https://app.netlify.com)
-2. Configure custom domain: `legal.simpl-tasks.com`
-3. Netlify automatically provisions Let's Encrypt SSL
+2. Configure custom domain `legal.simpl-tasks.com`
+3. Netlify provisions Let's Encrypt SSL
 
-## File Structure
+## File structure
 
 ```
 legal-site/
-├── index.html          # Privacy Policy (landing page)
-├── terms.html          # Terms of Service
-├── data-deletion.html  # Data Deletion Request
-├── css/
-│   └── style.css       # All styles (light/dark, responsive, print)
-├── js/
-│   └── main.js         # Scroll-spy, progress bar, back-to-top, dark mode
-├── assets/
-│   └── favicon.ico     # (add your favicon here)
-├── CNAME               # Domain config for GitHub Pages
-├── robots.txt          # Allow all, link sitemap
-└── README.md           # This file
+|-- index.html          # Privacy Policy (landing page)
+|-- terms.html          # Terms of Service
+|-- data-deletion.html  # Data Deletion Request
+|-- css/style.css
+|-- js/main.js
+|-- assets/             # favicon.svg, favicon.png, logo.svg, logo.png
+|-- CNAME               # legal.simpl-tasks.com (GitHub Pages)
+|-- robots.txt
+|-- sitemap.xml
+`-- README.md
 ```
 
-## Store Compliance
+## Store compliance
 
-### Google Play ✅
-- [x] Privacy policy link publicly accessible
-- [x] Data collection disclosure
-- [x] Third-party service disclosure
+### Google Play
+
+- [x] Privacy policy publicly accessible - `https://simpl-tasks.com/legal/`
+- [x] Data collection and third-party service disclosure
 - [x] Data deletion mechanism
-- [x] HTTPS (via GitHub Pages/Netlify)
+- [x] HTTPS
 
-### Apple App Store ✅
-- [x] Privacy policy link publicly accessible (Guideline 5.1.1)
-- [x] Data collection disclosure with nutrition labels
-- [x] Third-party service disclosure
-- [x] Account deletion mechanism (Guideline 5.1.1(v))
+### Apple App Store
+
+- [x] Privacy policy link (Guideline 5.1.1)
+- [x] Nutrition labels and third-party service disclosure
+- [x] Account deletion (Guideline 5.1.1(v)) - `/legal/data-deletion`
 - [x] ATT framework declaration
-- [x] HTTPS (via GitHub Pages/Netlify)
-- [x] Privacy nutrition label data (CCPA categories table)
+- [x] HTTPS
 
 ## Maintenance
 
-- Update the "Last Updated" date in all three HTML files when policies change
-- No server maintenance required — GitHub Pages / Netlify handle uptime, SSL, and CDN
-- To test locally: open any HTML file directly in a browser (no server needed)
+- Bump `Last updated` in all three HTML pages and all three `lastmod` values in `sitemap.xml`
+- Interim hosting is plain nginx; the final GitHub Pages setup needs no server maintenance
+- Test locally by opening any HTML file - all asset paths are relative
 
 ## Contact
 
